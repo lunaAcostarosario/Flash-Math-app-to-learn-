@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlashMath ⚡ - Repaso Matemático Instantáneo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
+    <style>
+        :root {
+            --bg-main: #0F172A;
+            --bg-card: #1E293B;
+            --bg-card-hover: #334155;
+            --primary: #4F46E5;
+            --primary-shadow: #3730A3;
+            --success: #10B981;
+            --success-shadow: #059669;
+            --error: #F43F5E;
+            --error-shadow: #E11D48;
+            --cyan: #38BDF8;
+            --text-main: #F8FAFC;
+            --text-muted: #94A3B8;
+            --radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            background-color: rgba(30, 41, 59, 0.5);
+            border: 1px solid #334155;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* --- Header global --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #334155;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .logo span { color: var(--cyan); }
+
+        .stats-badge {
+            display: flex;
+            gap: 12px;
+        }
+
+        .badge {
+            background: var(--bg-card);
+            border: 1px solid #334155;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge.fire { color: #F59E0B; }
+        .badge.xp { color: var(--cyan); }
+
+        /* --- Estilo de Pantallas --- */
+        .screen {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- PANTALLA 1: Buscador --- */
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 20px 16px 50px;
+            background: var(--bg-card);
+            border: 2px solid #334155;
+            border-radius: var(--radius);
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+
+        .chips-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .chip {
+            background: var(--bg-card);
+            border: 1px solid #334155;
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .chip.active, .chip:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .topics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .topic-card {
+            background: var(--bg-card);
+            border: 2px solid #334155;
+            border-radius: var(--radius);
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .topic-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--cyan);
+            background: var(--bg-card-hover);
+        }
+
+        .topic-icon { font-size: 1.8rem; }
+        .topic-title { font-weight: 700; font-size: 1rem; }
+        .topic-count { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* --- PANTALLA 2: Juego / Tarjetas --- */
+        .quiz-progress {
+            height: 10px;
+            background: #334155;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .quiz-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--cyan);
+            transition: width 0.3s ease;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 2px solid #334155;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .card-question {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .card-svg-container {
+            background: var(--bg-main);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
+            min-height: 140px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn-option {
+            background: var(--bg-card);
+            color: var(--text-main);
+            border: 2px solid #334155;
+            border-bottom: 5px solid #334155;
+            padding: 14px;
+            border-radius: var(--radius);
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.1s;
+            outline: none;
+        }
+
+        .btn-option:active {
+            transform: translateY(3px);
+            border-bottom-width: 2px;
+        }
+
+        .btn-option.correct {
+            background: var(--success) !important;
+            border-color: var(--success-shadow) !important;
+            color: white;
+        }
+
+        .btn-option.incorrect {
+            background: var(--error) !important;
+            border-color: var(--error-shadow) !important;
+            color: white;
+            animation: shake 0.3s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+
+        .explanation-box {
+            margin-top: 15px;
+            padding: 12px;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid var(--cyan);
+            border-radius: 12px;
+            font-size: 0.85rem;
+            color: var(--cyan);
+            display: none;
+            text-align: left;
+        }
+
+        /* --- PANTALLA 3: Resumen --- */
+        .results-box {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .results-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--cyan);
+        }
+
+        .results-scorecard {
+            background: var(--bg-card);
+            border: 2px solid #334155;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin: 20px 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .score-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .score-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .score-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .btn-action {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-bottom: 5px solid var(--primary-shadow);
+            padding: 16px;
+            border-radius: var(--radius);
+            font-weight: 700;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        .btn-action:active {
+            transform: translateY(3px);
+            border-bottom-width: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="header">
+            <div class="logo" onclick="showScreen(1)">
+                <span>FLASH</span>MATH⚡
+            </div>
+            <div class="stats-badge">
+                <div class="badge fire">🔥 <span id="streak-count">0</span></div>
+                <div class="badge xp">⭐ <span id="xp-count">0</span></div>
+            </div>
+        </header>
+
+        <section id="screen-1" class="screen active">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-input" class="search-input" placeholder="¿Qué concepto o fórmula buscas hoy?" oninput="filterTopics()">
+            </div>
+
+            <div class="chips-container">
+                <button class="chip active" onclick="filterCategory('all', this)">Todos</button>
+                <button class="chip" onclick="filterCategory('Geometría', this)">Geometría</button>
+                <button class="chip" onclick="filterCategory('Álgebra', this)">Álgebra</button>
+                <button class="chip" onclick="filterCategory('Trigonometría', this)">Trigonometría</button>
+            </div>
+
+            <div class="topics-grid" id="topics-grid">
+                </div>
+        </section>
+
+        <section id="screen-2" class="screen">
+            <div class="quiz-progress">
+                <div class="quiz-progress-bar" id="progress-bar"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-question" id="card-question">Pregunta...</div>
+                <div class="card-svg-container" id="card-svg">
+                    </div>
+                <div class="explanation-box" id="explanation-box"></div>
+            </div>
+
+            <div class="options-grid" id="options-grid">
+                </div>
+        </section>
+
+        <section id="screen-3" class="screen">
+            <div class="results-box">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🏆</div>
+                <div class="results-title">¡Sesión Completada!</div>
+                <p style="color: var(--text-muted);">¡Excelente trabajo repasando tus conceptos!</p>
+
+                <div class="results-scorecard">
+                    <div class="score-item">
+                        <span class="score-value" id="res-score">0/0</span>
+                        <span class="score-label">Aciertos</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-value" id="res-xp">+0</span>
+                        <span class="score-label">Puntos XP</span>
+                    </div>
+                </div>
+
+                <button class="btn-action" onclick="showScreen(1)">Buscar Otro Tema</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // --- BASE DE DATOS DE TEMAS Y PREGUNTAS ---
+        const database = [
+            {
+                id: "pitagoras",
+                title: "Teorema de Pitágoras",
+                category: "Geometría",
+                icon: "📐",
+                questions: [
+                    {
+                        q: "En un triángulo rectángulo con catetos a = 3 y b = 4, ¿cuánto vale la hipotenusa (c)?",
+                        svg: `<svg width="120" height="100" viewBox="0 0 120 100">
+                                <polygon points="20,80 100,80 20,20" fill="none" stroke="#38BDF8" stroke-width="3"/>
+                                <text x="55" y="95" fill="#F8FAFC" font-size="12">b = 4</text>
+                                <text x="5" y="55" fill="#F8FAFC" font-size="12">a = 3</text>
+                                <text x="65" y="45" fill="#38BDF8" font-size="12" font-weight="bold">c = ?</text>
+                              </svg>`,
+                        options: ["5", "6", "7", "2.5"],
+                        correct: 0,
+                        exp: "💡 Fórmula: c² = a² + b² ➔ c² = 3² + 4² = 9 + 16 = 25 ➔ c = √25 = 5"
+                    },
+                    {
+                        q: "¿Cuál es la relación del Teorema de Pitágoras?",
+                        svg: `<svg width="100" height="80" viewBox="0 0 100 80">
+                                <polygon points="10,70 90,70 10,10" fill="rgba(56,189,248,0.2)" stroke="#38BDF8" stroke-width="2"/>
+                              </svg>`,
+                        options: ["a + b = c", "a² + b² = c²", "a² - b² = c²", "2a + 2b = c"],
+                        correct: 1,
+                        exp: "💡 El cuadrado de la hipotenusa es igual a la suma de los cuadrados de los catetos."
+                    }
+                ]
+            },
+            {
+                id: "area-circulo",
+                title: "Área del Círculo",
+                category: "Geometría",
+                icon: "⭕",
+                questions: [
+                    {
+                        q: "¿Cuál es el área de un círculo con radio r = 3 cm?",
+                        svg: `<svg width="100" height="100" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="#38BDF8" stroke-width="3"/>
+                                <line x1="50" y1="50" x2="90" y2="50" stroke="#F43F5E" stroke-width="2"/>
+                                <text x="60" y="45" fill="#F43F5E" font-size="12">r = 3</text>
+                              </svg>`,
+                        options: ["6π cm²", "9π cm²", "12π cm²", "3π cm²"],
+                        correct: 1,
+                        exp: "💡 Área = π × r² ➔ Área = π × 3² = 9π cm²"
+                    }
+                ]
+            },
+            {
+                id: "ecuaciones",
+                title: "Ecuaciones de 1er Grado",
+                category: "Álgebra",
+                icon: "⚖️",
+                questions: [
+                    {
+                        q: "Resuelve para x: 2x + 4 = 10",
+                        svg: `<svg width="140" height="60" viewBox="0 0 140 60">
+                                <text x="20" y="38" fill="#38BDF8" font-size="20" font-weight="bold">2x + 4 = 10</text>
+                              </svg>`,
+                        options: ["x = 2", "x = 3", "x = 4", "x = 5"],
+                        correct: 1,
+                        exp: "💡 2x = 10 - 4 ➔ 2x = 6 ➔ x = 6 / 2 = 3"
+                    }
+                ]
+            },
+            {
+                id: "trigonometria",
+                title: "Razones Trigonométricas",
+                category: "Trigonometría",
+                icon: "📊",
+                questions: [
+                    {
+                        q: "¿A qué es igual el Seno (sen) de un ángulo?",
+                        svg: `<svg width="100" height="80" viewBox="0 0 100 80">
+                                <polygon points="10,70 80,70 80,10" fill="none" stroke="#38BDF8" stroke-width="2"/>
+                                <text x="25" y="65" fill="#F8FAFC" font-size="12">θ</text>
+                              </svg>`,
+                        options: ["Cateto Opuesto / Hipotenusa", "Cateto Adyacente / Hipotenusa", "Cateto Opuesto / Adyacente", "Hipotenusa / Cateto Opuesto"],
+                        correct: 0,
+                        exp: "💡 Seno = Opuesto / Hipotenusa | Coseno = Adyacente / Hipotenusa"
+                    }
+                ]
+            }
+        ];
+
+        // --- ESTADO GLOBAL ---
+        let userStats = {
+            streak: parseInt(localStorage.getItem('fm_streak')) || 0,
+            xp: parseInt(localStorage.getItem('fm_xp')) || 0
+        };
+
+        let currentQuiz = {
+            questions: [],
+            index: 0,
+            score: 0,
+            gainedXP: 0
+        };
+
+        const jsConfetti = new JSConfetti();
+
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStatsUI();
+            renderTopics(database);
+        });
+
+        // --- NAVEGACIÓN Y PANTALLAS ---
+        function showScreen(screenNum) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(`screen-${screenNum}`).classList.add('active');
+        }
+
+        function updateStatsUI() {
+            document.getElementById('streak-count').innerText = userStats.streak;
+            document.getElementById('xp-count').innerText = userStats.xp;
+            localStorage.setItem('fm_streak', userStats.streak);
+            localStorage.setItem('fm_xp', userStats.xp);
+        }
+
+        // --- PANTALLA 1: FILTROS Y BÚSQUEDA ---
+        function renderTopics(topics) {
+            const grid = document.getElementById('topics-grid');
+            grid.innerHTML = '';
+            
+            topics.forEach(t => {
+                grid.innerHTML += `
+                    <div class="topic-card" onclick="startQuiz('${t.id}')">
+                        <div class="topic-icon">${t.icon}</div>
+                        <div class="topic-title">${t.title}</div>
+                        <div class="topic-count">${t.category} • ${t.questions.length} preg.</div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterTopics() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = database.filter(t => 
+                t.title.toLowerCase().includes(query) || 
+                t.category.toLowerCase().includes(query)
+            );
+            renderTopics(filtered);
+        }
+
+        function filterCategory(cat, btn) {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+
+            if (cat === 'all') {
+                renderTopics(database);
+            } else {
+                renderTopics(database.filter(t => t.category === cat));
+            }
+        }
+
+        // --- PANTALLA 2: LÓGICA DE JUEGO ---
+        function startQuiz(topicId) {
+            const topic = database.find(t => t.id === topicId);
+            if (!topic) return;
+
+            currentQuiz.questions = topic.questions;
+            currentQuiz.index = 0;
+            currentQuiz.score = 0;
+            currentQuiz.gainedXP = 0;
+
+            showScreen(2);
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = currentQuiz.questions[currentQuiz.index];
+            const total = currentQuiz.questions.length;
+
+            // Barra de progreso
+            document.getElementById('progress-bar').style.width = `${((currentQuiz.index) / total) * 100}%`;
+            
+            document.getElementById('card-question').innerText = q.q;
+            document.getElementById('card-svg').innerHTML = q.svg;
+            
+            const expBox = document.getElementById('explanation-box');
+            expBox.style.display = 'none';
+            expBox.innerText = '';
+
+            const optionsGrid = document.getElementById('options-grid');
+            optionsGrid.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                optionsGrid.innerHTML += `
+                    <button class="btn-option" onclick="checkAnswer(${idx}, this)">${opt}</button>
+                `;
+            });
+        }
+
+        function checkAnswer(selectedIdx, btn) {
+            const q = currentQuiz.questions[currentQuiz.index];
+            const allBtns = document.querySelectorAll('.btn-option');
+            allBtns.forEach(b => b.disabled = true);
+
+            if (selectedIdx === q.correct) {
+                btn.classList.add('correct');
+                currentQuiz.score++;
+                currentQuiz.gainedXP += 100;
+                userStats.xp += 100;
+                userStats.streak++;
+                updateStatsUI();
+                
+                jsConfetti.addConfetti({
+                    emojis: ['⚡', '✨'],
+                    confettiNumber: 15,
+                });
+
+                setTimeout(nextQuestion, 1200);
+            } else {
+                btn.classList.add('incorrect');
+                allBtns[q.correct].classList.add('correct');
+                
+                // Mostrar explicación
+                const expBox = document.getElementById('explanation-box');
+                expBox.innerText = q.exp;
+                expBox.style.display = 'block';
+
+                userStats.streak = 0; // Reinicia racha al fallar
+                updateStatsUI();
+
+                setTimeout(nextQuestion, 2800);
+            }
+        }
+
+        function nextQuestion() {
+            currentQuiz.index++;
+            if (currentQuiz.index < currentQuiz.questions.length) {
+                loadQuestion();
+            } else {
+                endQuiz();
+            }
+        }
+
+        // --- PANTALLA 3: RESUMEN ---
+        function endQuiz() {
+            showScreen(3);
+            document.getElementById('res-score').innerText = `${currentQuiz.score}/${currentQuiz.questions.length}`;
+            document.getElementById('res-xp').innerText = `+${currentQuiz.gainedXP} XP`;
+            
+            if (currentQuiz.score > 0) {
+                jsConfetti.addConfetti();
+            }
+        }
+    </script>
+</body>
+</html>
